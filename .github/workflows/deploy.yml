@@ -19,16 +19,16 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm install  # Ensure `package.json` exists in the repo
+        run: npm install  # Make sure package.json exists
 
       - name: Build project
-        run: npm run build  # This should be defined in your `package.json` scripts
+        run: npm run build  # Ensure this script exists in package.json
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-files
-          path: build  # Adjust if your build output directory is different
+          name: build-artifact  # ✅ Ensure consistent name
+          path: build  # ✅ Make sure 'build' is your actual output directory
 
   deploy:
     needs: build
@@ -41,8 +41,8 @@ jobs:
       - name: Download built files
         uses: actions/download-artifact@v4
         with:
-          name: build-files
-          path: build
+          name: build-artifact  # ✅ Match name from upload step
+          path: build  # ✅ Ensure correct directory
 
       - name: Deploy to Server (via SSH)
         uses: appleboy/ssh-action@v1.0.3
@@ -51,8 +51,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /var/www/myapp  # Adjust to your server project directory
+            cd /var/www/myapp
             git pull origin main
-            npm install  # Install/update dependencies
-            npm run build  # Rebuild the project
+            npm install
+            npm run build
             pm2 restart myapp || pm2 start npm --name "myapp" -- run start
