@@ -7,11 +7,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Use Ubuntu as the build environment
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4  # Clones your repo into the runner
+        uses: actions/checkout@v4  # Latest version
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -19,30 +19,30 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm ci  # `npm ci` is better for CI/CD (faster, consistent)
+        run: npm ci
 
       - name: Build project
         run: npm run build
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+      - name: Upload build artifacts  # ✅ Updated to v4
+        uses: actions/upload-artifact@v4
         with:
           name: build-files
-          path: build  # Change this if your output folder is different
+          path: build
 
   deploy:
-    needs: build  # Deploy only after build completes
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download built files
-        uses: actions/download-artifact@v3
+      - name: Download built files  # ✅ Updated to v4
+        uses: actions/download-artifact@v4
         with:
           name: build-files
-          path: build  # Match the build directory
+          path: build
 
       - name: Deploy to Server (via SSH)
         uses: appleboy/ssh-action@v1.0.3
@@ -51,8 +51,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /var/www/myapp  # Change this to your actual project path
+            cd /var/www/myapp
             git pull origin main
-            npm ci  # Ensures dependencies match package-lock.json
-            npm run build  # Ensure latest build
+            npm ci
+            npm run build
             pm2 restart myapp || pm2 start npm --name "myapp" -- run start
