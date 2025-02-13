@@ -7,13 +7,13 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Runner environment
+    runs-on: ubuntu-latest  # Build on latest Ubuntu
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js (Example for Node.js apps)
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
@@ -24,15 +24,27 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Upload artifact (optional)
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-files
+          path: build  # Adjust based on your project
+
   deploy:
-    needs: build  # Runs only after build completes
+    needs: build  # Runs only after the build job completes successfully
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Deploy to Server (Example: SSH)
+      - name: Download built files (if using artifact)
+        uses: actions/download-artifact@v3
+        with:
+          name: build-files
+          path: build  # Adjust as needed
+
+      - name: Deploy to Server (via SSH)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -42,4 +54,5 @@ jobs:
             cd /var/www/myapp
             git pull origin main
             npm install
-            npm run start
+            npm run build  # Ensure the latest build is generated
+            pm2 restart myapp || pm2 start npm --name "myapp" -- run start  # Auto-restart the app
