@@ -3,15 +3,15 @@ name: Auto Build & Deploy
 on:
   push:
     branches:
-      - main  # Trigger on push to main branch
+      - main  # Runs on push to main branch
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Build on latest Ubuntu
+    runs-on: ubuntu-latest  # Use Ubuntu as the build environment
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  # Clones your repo into the runner
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -19,30 +19,30 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci  # `npm ci` is better for CI/CD (faster, consistent)
 
       - name: Build project
         run: npm run build
 
-      - name: Upload artifact (optional)
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
           name: build-files
-          path: build  # Adjust based on your project
+          path: build  # Change this if your output folder is different
 
   deploy:
-    needs: build  # Runs only after the build job completes successfully
+    needs: build  # Deploy only after build completes
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download built files (if using artifact)
+      - name: Download built files
         uses: actions/download-artifact@v3
         with:
           name: build-files
-          path: build  # Adjust as needed
+          path: build  # Match the build directory
 
       - name: Deploy to Server (via SSH)
         uses: appleboy/ssh-action@v1.0.3
@@ -51,8 +51,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /var/www/myapp
+            cd /var/www/myapp  # Change this to your actual project path
             git pull origin main
-            npm install
-            npm run build  # Ensure the latest build is generated
-            pm2 restart myapp || pm2 start npm --name "myapp" -- run start  # Auto-restart the app
+            npm ci  # Ensures dependencies match package-lock.json
+            npm run build  # Ensure latest build
+            pm2 restart myapp || pm2 start npm --name "myapp" -- run start
