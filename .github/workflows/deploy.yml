@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4  # Latest version
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -19,16 +19,16 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm install
+        run: npm install  # Ensure `package.json` exists in the repo
 
       - name: Build project
-        run: npm run build
+        run: npm run build  # This should be defined in your `package.json` scripts
 
-      - name: Upload build artifacts  # ✅ Updated to v4
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-files
-          path: build
+          path: build  # Adjust if your build output directory is different
 
   deploy:
     needs: build
@@ -38,7 +38,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download built files  # ✅ Updated to v4
+      - name: Download built files
         uses: actions/download-artifact@v4
         with:
           name: build-files
@@ -51,8 +51,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /var/www/myapp
+            cd /var/www/myapp  # Adjust to your server project directory
             git pull origin main
-            npm ci
-            npm run build
+            npm install  # Install/update dependencies
+            npm run build  # Rebuild the project
             pm2 restart myapp || pm2 start npm --name "myapp" -- run start
