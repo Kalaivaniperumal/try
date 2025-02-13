@@ -1,4 +1,4 @@
-name: Auto Build & Deploy
+name: Auto Deploy HTML
 
 on:
   push:
@@ -6,43 +6,12 @@ on:
       - main  # Runs on push to main branch
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: npm install  # Make sure package.json exists
-
-      - name: Build project
-        run: npm run build  # Ensure this script exists in package.json
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifact  # ✅ Ensure consistent name
-          path: build  # ✅ Make sure 'build' is your actual output directory
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Download built files
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifact  # ✅ Match name from upload step
-          path: build  # ✅ Ensure correct directory
 
       - name: Deploy to Server (via SSH)
         uses: appleboy/ssh-action@v1.0.3
@@ -51,8 +20,6 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /var/www/myapp
+            cd /var/www/myapp  # Change this to your server directory
             git pull origin main
-            npm install
-            npm run build
-            pm2 restart myapp || pm2 start npm --name "myapp" -- run start
+            cp -r * /var/www/html  # Copy files to web server
