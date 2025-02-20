@@ -1,0 +1,17 @@
+name: Deploy Application
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy Script
+        uses: curl -X POST -d {} ${{ secrects.NETLIFY_BUILD_HOOK }}
+        
